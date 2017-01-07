@@ -266,6 +266,9 @@ to help you, but may refer you to the backend author.
   * `postgresql` - Store data within PostgreSQL. This backend does not support HA. This
     is a community-supported backend.
 
+  * `cassandra` – Store data within Cassandra. This backend does not support HA. This
+    is a community-supported backend.
+
   * `inmem` - Store data in-memory. This is only really useful for
     development and experimentation. Data is lost whenever Vault is
     restarted.
@@ -738,6 +741,41 @@ LANGUAGE plpgsql;
 ```
 
 More info can be found in the [PostgreSQL documentation](http://www.postgresql.org/docs/9.4/static/plpgsql-control-structures.html#PLPGSQL-UPSERT-EXAMPLE):
+
+#### Backend Reference: Cassandra (Community-Supported)
+
+The Cassandra backend has the following options:
+
+  * `hosts` (optional) – Comma-separated list of Cassandra hosts to connect to.
+    Defaults to `"127.0.0.1"`.
+
+  * `keyspace` (optional) – Cassandra keyspace to use. Defaults to `"vault"`.
+
+  * `table` (optional) – Table within the `keyspace` in which to store data.
+    Defaults to `"entries"`.
+
+  * `consistency` (optional) – Consistency level to use when reading/writing data
+    in Cassandra. If set, must be one of `"ANY"`, `"ONE"`, `"TWO"`, `"THREE"`, `"QUORUM"`,
+    `"ALL"`, `"LOCAL_QUORUM"`, `"EACH_QUORUM"`, or `"LOCAL_ONE"`. Defaults to `"LOCAL_QUORUM"`.
+
+You need to ensure the keyspace and table exist in Cassandra:
+
+```cql
+CREATE KEYSPACE "vault" WITH REPLICATION = {
+    'class' : 'SimpleStrategy',
+    'replication_factor' : 1
+};
+
+CREATE TABLE "vault"."entries" (
+    bucket text,
+    key text,
+    value blob,
+    PRIMARY KEY (bucket, key)
+) WITH CLUSTERING ORDER BY (key ASC);
+
+```
+
+_Note:_ Keyspace replication options should be [customised](http://docs.datastax.com/en/cql/3.1/cql/cql_reference/create_keyspace_r.html#reference_ds_ask_vyj_xj__description) appropriately for your environment.
 
 #### Backend Reference: Inmem
 
